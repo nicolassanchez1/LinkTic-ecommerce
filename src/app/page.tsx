@@ -1,16 +1,13 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useCartStore } from "./src/store/cartStore";
-import type { Product } from "./src/store/cartStore";
+import { useCartStore } from "@/src/store/cartStore";
+import type { Product } from "@/src/store/cartStore";
+import { apiClient } from "@/src/lib/apiClient";
+import Link from "next/link";
+import { useSession, signIn } from "next-auth/react";
 
-const fetchProducts = async () => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const res = await fetch(`${apiUrl}/products`);
-
-  if (!res.ok) throw new Error("Error al cargar los productos");
-  return res.json();
-};
+const fetchProducts = async () => apiClient<Product[]>("/products");
 
 export default function Home() {
   const {
@@ -26,6 +23,8 @@ export default function Home() {
   const addToCart = useCartStore((state) => state.addToCart);
   const totalItems = useCartStore((state) => state.getTotalItems());
 
+  const { status } = useSession();
+
   return (
     <main className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-6xl mx-auto">
@@ -39,12 +38,34 @@ export default function Home() {
               🛒 Carrito:{" "}
               <span className="text-blue-600 font-bold">{totalItems}</span>
             </div>
-            <button className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-              Iniciar Sesión
-            </button>
+
+            {/* 3. Usamos el status y la función signIn */}
+            {status === "unauthenticated" && (
+              <div className="flex gap-2">
+                <Link
+                  href="/register"
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Registrarse
+                </Link>
+                <button
+                  onClick={() => signIn()}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  Iniciar Sesión
+                </button>
+              </div>
+            )}
+
+            {status === "authenticated" && (
+              <span className="text-sm font-medium text-green-600">
+                ¡Logueado!
+              </span>
+            )}
           </div>
         </div>
 
+        {/* ... (El resto del código de los productos se mantiene igual) */}
         {isLoading && <p className="text-gray-500">Cargando productos...</p>}
         {isError && <p className="text-red-500">Error: {error.message}</p>}
 
