@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/src/store/cartStore";
 import { apiClient } from "@/src/lib/apiClient";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session, status } = useSession();
   const cart = useCartStore((state) => state.cart);
   const clearCart = useCartStore((state) => state.clearCart);
@@ -55,6 +57,8 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify(orderPayload),
       });
+
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
 
       alert("¡Orden creada con éxito! Gracias por tu compra.");
       clearCart();

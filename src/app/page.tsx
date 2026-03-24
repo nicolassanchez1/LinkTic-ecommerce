@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/src/store/cartStore";
 import { apiClient } from "@/src/lib/apiClient";
 import CartSidebar from "@/src/components/CartSidebar";
-import CreateProductModal from "@/src/components/CreateProductModal";
+import ProductModal from "@/src/components/ProductModal";
 import type { Product } from "@/src/store/cartStore";
 
 const fetchProducts = async () => apiClient<Product[]>("/products");
@@ -29,7 +29,13 @@ export default function Home() {
 
   const { data: session, status } = useSession();
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    product: Product | null;
+  }>({
+    isOpen: false,
+    product: null,
+  });
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -81,7 +87,7 @@ export default function Home() {
                   </span>
                 </span>
                 <button
-                  onClick={() => setIsCreateModalOpen(true)}
+                  onClick={() => setModalState({ isOpen: true, product: null })}
                   className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
                 >
                   + Crear Producto
@@ -136,6 +142,16 @@ export default function Home() {
                 >
                   Agregar al Carrito
                 </button>
+                {status === "authenticated" &&
+                  product.userId === (session?.user as any)?.id && (
+                    <button
+                      onClick={() =>
+                        setModalState({ isOpen: true, product: product })
+                      }
+                    >
+                      Editar
+                    </button>
+                  )}
               </div>
             ))}
           </div>
@@ -152,9 +168,10 @@ export default function Home() {
 
         <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
-        <CreateProductModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+        <ProductModal
+          isOpen={modalState.isOpen}
+          product={modalState.product}
+          onClose={() => setModalState({ isOpen: false, product: null })}
           onSuccess={() => refetch()}
         />
       </div>

@@ -1,18 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { apiClient } from "@/src/lib/apiClient";
+import type { Product } from "@/src/store/cartStore";
 
-interface CreateProductModalProps {
+interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  product?: Product | null;
 }
 
-export default function CreateProductModal({
+export default function ProductModal({
   isOpen,
   onClose,
   onSuccess,
-}: CreateProductModalProps) {
+  product,
+}: ProductModalProps) {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,6 +26,19 @@ export default function CreateProductModal({
     stock: "",
     imageBase64: "",
   });
+
+  useEffect(() => {
+    if (product && isOpen) {
+      setFormData({
+        name: product.name,
+        price: product.price.toString(),
+        stock: product.stock.toString(),
+        imageBase64: product.image || "",
+      });
+    } else if (isOpen) {
+      setFormData({ name: "", price: "", stock: "", imageBase64: "" });
+    }
+  }, [product, isOpen]);
 
   if (!isOpen) return null;
 
@@ -43,8 +59,11 @@ export default function CreateProductModal({
     setError("");
 
     try {
-      await apiClient("/products", {
-        method: "POST",
+      const endpoint = product ? `/products/${product.id}` : "/products";
+      const method = product ? "PATCH" : "POST";
+
+      await apiClient(endpoint, {
+        method,
         headers: {
           Authorization: `Bearer ${(session as any)?.accessToken}`,
         },
@@ -56,22 +75,26 @@ export default function CreateProductModal({
         }),
       });
 
-      setFormData({ name: "", price: "", stock: "", imageBase64: "" });
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.message || "Error al crear el producto");
+      setError(
+        err.message ||
+          `Error al ${product ? "actualizar" : "crear"} el producto`
+      );
     } finally {
       setIsLoading(false);
     }
   };
+
+  const isEditing = !!product;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
-            Nuevo Producto 📦
+            {isEditing ? "Editar Producto ✏️" : "Nuevo Producto 📦"}
           </h2>
           <button
             onClick={onClose}
@@ -100,7 +123,6 @@ export default function CreateProductModal({
                 setFormData({ ...formData, name: e.target.value })
               }
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="Ej: Laptop Pro 2.2"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -118,36 +140,34 @@ export default function CreateProductModal({
                   setFormData({ ...formData, price: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="1500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock inicial
+                Stock
               </label>
               <input
                 required
                 type="number"
-                min="1"
+                min="0"
                 value={formData.stock}
                 onChange={(e) =>
                   setFormData({ ...formData, stock: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="10"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Imagen del producto (Opcional)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-              />
-            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Imagen del producto (Opcional)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+            />
           </div>
 
           <button
@@ -155,7 +175,11 @@ export default function CreateProductModal({
             disabled={isLoading}
             className="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
           >
-            {isLoading ? "Creando..." : "Crear Producto"}
+            {isLoading
+              ? "Guardando..."
+              : isEditing
+              ? "Guardar Cambios"
+              : "Crear Producto"}
           </button>
         </form>
       </div>
