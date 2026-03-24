@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiClient } from "@/src/lib/apiClient";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,7 +27,18 @@ export default function RegisterPage() {
         body: JSON.stringify(formData),
       });
 
-      alert("¡Cuenta creada con éxito!");
+      const signInResult = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        throw new Error(
+          "Cuenta creada, pero hubo un error al iniciar sesión automáticamente."
+        );
+      }
+
       router.push("/");
     } catch (err: any) {
       setError(err.message);

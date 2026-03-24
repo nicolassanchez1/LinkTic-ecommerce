@@ -1,11 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/src/store/cartStore";
-import type { Product } from "@/src/store/cartStore";
 import { apiClient } from "@/src/lib/apiClient";
-import Link from "next/link";
-import { useSession, signIn } from "next-auth/react";
+import type { Product } from "@/src/store/cartStore";
 
 const fetchProducts = async () => apiClient<Product[]>("/products");
 
@@ -23,7 +23,7 @@ export default function Home() {
   const addToCart = useCartStore((state) => state.addToCart);
   const totalItems = useCartStore((state) => state.getTotalItems());
 
-  const { status } = useSession();
+  const { data: session, status } = useSession();
 
   return (
     <main className="min-h-screen p-8 bg-gray-50">
@@ -39,7 +39,6 @@ export default function Home() {
               <span className="text-blue-600 font-bold">{totalItems}</span>
             </div>
 
-            {/* 3. Usamos el status y la función signIn */}
             {status === "unauthenticated" && (
               <div className="flex gap-2">
                 <Link
@@ -58,9 +57,20 @@ export default function Home() {
             )}
 
             {status === "authenticated" && (
-              <span className="text-sm font-medium text-green-600">
-                ¡Logueado!
-              </span>
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-700">
+                  Hola,{" "}
+                  <span className="font-bold text-gray-900">
+                    {session?.user?.name}
+                  </span>
+                </span>
+                <button
+                  onClick={() => signOut()}
+                  className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  Salir
+                </button>
+              </div>
             )}
           </div>
         </div>
