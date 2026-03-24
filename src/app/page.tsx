@@ -1,10 +1,13 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/src/store/cartStore";
 import { apiClient } from "@/src/lib/apiClient";
+import CartSidebar from "@/src/components/CartSidebar";
+import CreateProductModal from "@/src/components/CreateProductModal";
 import type { Product } from "@/src/store/cartStore";
 
 const fetchProducts = async () => apiClient<Product[]>("/products");
@@ -15,6 +18,7 @@ export default function Home() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
@@ -24,6 +28,14 @@ export default function Home() {
   const totalItems = useCartStore((state) => state.getTotalItems());
 
   const { data: session, status } = useSession();
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <main className="min-h-screen p-8 bg-gray-50">
@@ -33,11 +45,15 @@ export default function Home() {
             Catálogo de Productos
           </h1>
           <div className="flex gap-4 items-center">
-            {/* Indicador del Carrito */}
-            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 font-medium text-gray-700">
-              🛒 Carrito:{" "}
-              <span className="text-blue-600 font-bold">{totalItems}</span>
-            </div>
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 font-medium text-gray-700 hover:bg-gray-50 hover:shadow transition-all cursor-pointer flex items-center gap-2"
+            >
+              <span>🛒 Carrito:</span>
+              <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md">
+                {isMounted ? totalItems : 0}
+              </span>
+            </button>
 
             {status === "unauthenticated" && (
               <div className="flex gap-2">
@@ -65,6 +81,12 @@ export default function Home() {
                   </span>
                 </span>
                 <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors border border-blue-100"
+                >
+                  + Crear Producto
+                </button>
+                <button
                   onClick={() => signOut()}
                   className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                 >
@@ -75,7 +97,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ... (El resto del código de los productos se mantiene igual) */}
         {isLoading && <p className="text-gray-500">Cargando productos...</p>}
         {isError && <p className="text-red-500">Error: {error.message}</p>}
 
@@ -84,13 +105,25 @@ export default function Home() {
             {products.map((product: Product) => (
               <div
                 key={product.id}
-                className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col justify-between"
+                className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex flex-col justify-between"
               >
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">
+                  <div className="w-full h-48 bg-gray-50 rounded-lg mb-4 overflow-hidden flex items-center justify-center border border-gray-100">
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-5xl opacity-50">🛍️</span>
+                    )}
+                  </div>
+
+                  <h2 className="text-xl font-semibold text-gray-800 line-clamp-1">
                     {product.name}
                   </h2>
-                  <p className="text-3xl font-bold text-blue-600 mt-4">
+                  <p className="text-3xl font-bold text-blue-600 mt-2">
                     ${product.price}
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
@@ -116,6 +149,14 @@ export default function Home() {
             </div>
           )
         )}
+
+        <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+        <CreateProductModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={() => refetch()}
+        />
       </div>
     </main>
   );
