@@ -107,6 +107,13 @@ export default function Home() {
 
                   {status === "authenticated" && (
                     <div className="flex items-center gap-2 sm:gap-4">
+                      <Link
+                        href="/orders"
+                        className="px-4 py-3 text-sm font-bold text-slate-700 bg-white rounded-2xl hover:bg-slate-50 transition-colors border border-slate-200 shadow-sm flex items-center gap-2"
+                      >
+                        <span className="hidden md:inline">🧾 Mis Órdenes</span>
+                        <span className="md:hidden">🧾</span>
+                      </Link>
                       <button
                         onClick={() =>
                           setModalState({ isOpen: true, product: null })
@@ -273,7 +280,7 @@ export default function Home() {
               </h3>
               <p className="text-slate-600 max-w-md mx-auto font-medium">
                 Aún no hay productos disponibles en la plataforma de gestión
-                comercial de LinkTic Store.
+                comercial de LinkTic Commerce.
               </p>
             </div>
           )
