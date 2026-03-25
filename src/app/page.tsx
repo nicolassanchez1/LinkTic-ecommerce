@@ -73,6 +73,21 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 sm:gap-4">
+                  <Link
+                    href="/status"
+                    className="flex items-center gap-2.5 px-4 py-2.5 bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold rounded-xl transition-all shadow-sm hover:shadow"
+                  >
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                    <span className="hidden sm:inline text-sm">
+                      System Health
+                    </span>
+                  </Link>
+
+                  <div className="h-8 w-px bg-slate-200 hidden sm:block mx-1"></div>
+
                   {status === "unauthenticated" && (
                     <div className="flex gap-2 sm:gap-4">
                       <Link
@@ -83,7 +98,7 @@ export default function Home() {
                       </Link>
                       <button
                         onClick={() => signIn()}
-                        className="px-6 py-3 text-sm font-bold text-white bg-slate-950 rounded-2xl hover:bg-slate-800 transition-all shadow-md hover:shadow-lg"
+                        className="px-6 py-3 cursor-pointer text-sm font-bold text-white bg-slate-950 rounded-2xl hover:bg-slate-800 transition-all shadow-md hover:shadow-lg"
                       >
                         Iniciar Sesión
                       </button>
@@ -117,7 +132,7 @@ export default function Home() {
                           <span className="text-xs text-slate-500">
                             Bienvenido,
                           </span>
-                          <span className="text-base font-extrabold text-slate-950 -mt-0.5 truncate max-w-30">
+                          <span className="text-base font-extrabold text-slate-950 -mt-0.5 truncate max-w-[120px]">
                             {session?.user?.name || "Usuario"}
                           </span>
                         </div>
@@ -129,7 +144,7 @@ export default function Home() {
 
                   <button
                     onClick={() => setIsCartOpen(true)}
-                    className="group relative px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl border-2 border-slate-100 bg-white hover:border-blue-500 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2.5"
+                    className="group relative px-4 sm:px-5 py-3 cursor-pointer sm:py-3.5 rounded-2xl border-2 border-slate-100 bg-white hover:border-blue-500 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2.5"
                   >
                     <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform">
                       🛒
@@ -227,7 +242,7 @@ export default function Home() {
                   <div className="mt-6 space-y-3">
                     <button
                       onClick={() => addToCart(product)}
-                      className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl hover:bg-blue-700 transition-colors active:scale-95 transform shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                      className="w-full cursor-pointer bg-blue-600 text-white font-bold py-3.5 rounded-2xl hover:bg-blue-700 transition-colors active:scale-95 transform shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     >
                       🛒 Agregar al Carrito
                     </button>
