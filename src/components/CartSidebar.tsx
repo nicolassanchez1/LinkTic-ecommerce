@@ -1,19 +1,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/src/store/cartStore";
+import { formatPrice } from "../utils/price";
 
 interface CartSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(price);
-};
 
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const router = useRouter();
@@ -44,7 +37,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-slate-50 shadow-2xl z-[60] transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-slate-50 shadow-2xl z-60 transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -104,7 +97,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-3 min-w-[100px]">
+                  <div className="flex flex-col items-end gap-3 min-w-25">
                     <span className="font-black text-slate-900 text-lg tracking-tight">
                       {formatPrice(item.price * item.quantity)}
                     </span>
